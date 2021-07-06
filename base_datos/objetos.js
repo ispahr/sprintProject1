@@ -32,7 +32,7 @@ let pedidos = [
         estado: 'pendiente',
         productos: [
             {
-                plato: "",
+                platoID: 1,
                 cantidad: 0,
                 precio: 0
             }

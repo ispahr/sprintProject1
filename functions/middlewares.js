@@ -42,7 +42,7 @@ function es_admin(req,res,next) {
     if (logueado.usuario.admin === true) {
         next();
     } else {
-        res.status(403).send("No pueded realizar esta accion");
+        res.status(403).send("No puede realizar esta accion");
     }
 }
 
@@ -51,6 +51,14 @@ function esta_registrado(req,res,next) {
         res.status(403).send("Debe iniciar sesion para realizar esta accion");
     } else{
         next();
+    }
+}
+
+function no_admin(req,res,next) {
+    if (logueado.usuario.admin === false) {
+        next();
+    } else {
+        res.status(403).send("Usted es un usuario administrador. No puede realizar esta accion");
     }
 }
 
@@ -73,5 +81,6 @@ module.exports = {
     validar_nueva_cuenta,
     errorHandler, 
     es_admin,
-    esta_registrado
+    esta_registrado,
+    no_admin
 }

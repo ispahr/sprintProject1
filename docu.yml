@@ -1,0 +1,117 @@
+openapi: 3.0.0
+title: Delilha Resto
+description: Primer sprint proyect de ACAMICA
+contact:
+  name: Ignacio Spahr
+  email: ignaspahr@gmail.com
+license:
+  name: MIT
+servers:
+  - url: http://localhost:9090/
+    description: develompment server
+paths:
+  /usuarios:
+    put:
+      description: Inicia sesión
+      parameters:
+      - name: email
+        in: header
+        description: email de usuario registrado
+        required: true
+        type: string
+      - name: password
+        in: header
+        description: password de usuario registrado
+        required: true
+        type: string
+      responses:
+        200:
+          description: Sesion iniciada con exito              
+        406:
+          description: Usuario no registrado
+    post:
+      description: Crear cuenta
+      parameters:
+      - name: usuario
+        in: body
+        description: datos para crear la cuenta
+        required: true
+        schema:
+          type: object
+          properties:
+            userName:
+              type: string
+            name:
+              type: string
+            email:
+              type: string
+            phoneNumber:
+              type: string
+            adrress:
+              type: string
+            password:
+              type: string
+      responses:
+        200:
+          description: Todo bien
+  /productos:
+    put:
+      description: Crea un nuevo producto
+      parameters:
+      - name: nombre
+        in: header
+        description: El nombre del nuevo producto
+        required: true
+        type: string
+      - name: precio
+        in: header
+        description: El precio del nuevo producto
+        required: true
+        type: integer
+      responses:
+        200:
+          description: Producto agregado correctamente             
+        406:
+          description: Producto ya registrado o formato de parametros no válido  
+    post:
+      description: Edita un producto existente por su ID
+      parameters:
+      - name: producto
+        in: body
+        description: datos para crear el nuevo producto
+        required: true
+        schema:
+          type: object
+          properties:
+            platoID:
+              type: integer
+            plato:
+              type: string
+            precio:
+              type: integer
+      responses:
+        200:
+          description: Producto editado correctamente             
+        400:
+          description: "Obligatorio: {platoID: Number} Opcional(al menos uno): {precio:Number} o {plato:string}"
+        404:
+          descripction: platoID no encontrado
+    delete:
+      description: Elimina un producto existente por su ID
+      parameters:
+      - name: platoID
+        in: body
+        description: ID del producto que se desea borrar
+        required: true
+        schema:
+          type: object
+          properties:
+            platoID:
+              type: integer
+      responses:
+        200:
+          description: Producto eliminado correctamente             
+        400:
+          description: platoID debe ser un numero
+        404:
+          descripction: platoID no encontrado
