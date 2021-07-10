@@ -1,4 +1,4 @@
-const { usuarios,pedidos, logueado,productos } = require("../base_datos/objetos");
+const { usuarios,pedidos, logueado,productos } = require("../database/objetos");
 
 
 //middleware

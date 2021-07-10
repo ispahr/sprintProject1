@@ -60,9 +60,17 @@ let productos = [
     },
 ];
 
+let medios_pago = {
+    1:'Tarjeta de credito',
+    2:'Tarjeta de debito',
+    3:'Efectivo',
+    4:'Transferencia Bancaria'
+};
+
 module.exports = {
     usuarios,
     pedidos,
     logueado,
-    productos
+    productos,
+    medios_pago
 }

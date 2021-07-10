@@ -7,12 +7,14 @@ contact:
 license:
   name: MIT
 servers:
-  - url: http://localhost:9090/
+  - url: http://localhost:9090/api/v1
     description: develompment server
 paths:
   /usuarios:
     put:
       description: Inicia sesión
+      tags:
+      - Usuario
       parameters:
       - name: email
         in: header
@@ -31,6 +33,8 @@ paths:
           description: Usuario no registrado
     post:
       description: Crear cuenta
+      tags:
+      - Usuario
       parameters:
       - name: usuario
         in: body
@@ -57,6 +61,8 @@ paths:
   /productos:
     put:
       description: Crea un nuevo producto
+      tags:
+      - Productos
       parameters:
       - name: nombre
         in: header
@@ -75,6 +81,8 @@ paths:
           description: Producto ya registrado o formato de parametros no válido  
     post:
       description: Edita un producto existente por su ID
+      tags:
+      - Productos
       parameters:
       - name: producto
         in: body
@@ -98,6 +106,8 @@ paths:
           descripction: platoID no encontrado
     delete:
       description: Elimina un producto existente por su ID
+      tags:
+      - Productos
       parameters:
       - name: platoID
         in: body
@@ -115,3 +125,64 @@ paths:
           description: platoID debe ser un numero
         404:
           descripction: platoID no encontrado
+  /pedidos:
+    post:
+      description: Un usuario realiza un nuevo pedido
+      tags:
+      - Pedidos
+      parameters:
+      - name: pedidos
+        in: body
+        description: Listado de los prodcutos que desea adquirir
+        required: true
+        schema:
+          type: object
+          properties:
+            platoID:
+              type: integer
+            cantidad:
+              type: string
+      responses:
+        200:
+          description: Pedido agregado con exito             
+        400:
+          description: Body debe ser un Objeto con clave y valor numericas
+    get:
+        description: Muestra los pedidos de un usuario
+        tags:
+        - Pedidos
+        responses:
+          200:
+            description: Producto agregado correctamente            
+          404:
+            description: El usuario no tiene pedidos
+  /pedidos/admin:
+    get:
+      description: Un administrador puede ver todos los pedidos
+      tags:
+      - Pedidos Admin
+      responses:
+        200:
+          description: Se muestran los pedidos             
+        400:
+          description: Body debe ser un Objeto con clave y valor numericas
+    put:
+      description: Un administrador modifica el estado de un pedido
+      tags:
+      - Pedidos Admin
+      parameters:
+      - name: pedidoid
+        in: header
+        description: ID del pedido que se desea modificar el estado
+        required: true
+        type: integer
+      - name: nuevo_estado
+        in: header
+        description: El nuevo estado que sera asignado al pedido
+        required: true
+        type: string   
+      responses:
+        200:
+          description: Se muestran los pedidos             
+        400:
+          description: Body debe ser un Objeto con clave y valor numericas
