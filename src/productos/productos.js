@@ -17,7 +17,7 @@ function crear_nuevo_producto(req,res) {
         
     } else{
         valido = false;
-        res.status(406).send("Formato de parametros en headers no valido. {nombre: string, precio:Number}");
+        res.status(406).send("Formato de parametros en headers no valido. nombre: string y precio:Number");
     }
 
 

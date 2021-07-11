@@ -28,16 +28,25 @@ let logueado = {
 let pedidos = [
     {   
         pedidoID: 100,
-        usuario: {},
+        usuario:
+            {
+                userName: "pepito10",
+                name: "Pepito Lopez",
+                email: "pepito@gmail.com",
+                phoneNumber: "1512345678",
+                adrress: "Calle falsa 123",
+                password: "123456",
+                admin: false
+            },
         estado: 'pendiente',
         productos: [
             {
                 platoID: 1,
-                cantidad: 0,
-                precio: 0
+                cantidad: 2,
+                precio: 50
             }
         ],
-        costo_total: 0
+        costo_total: 100
 
     }
 ];

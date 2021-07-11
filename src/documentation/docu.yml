@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.0.1
 title: Delilha Resto
 description: Primer sprint proyect de ACAMICA
 contact:
@@ -59,7 +59,7 @@ paths:
         200:
           description: Todo bien
   /productos:
-    put:
+    post:
       description: Crea un nuevo producto
       tags:
       - Productos
@@ -79,7 +79,7 @@ paths:
           description: Producto agregado correctamente             
         406:
           description: Producto ya registrado o formato de parametros no válido  
-    post:
+    put:
       description: Edita un producto existente por su ID
       tags:
       - Productos
@@ -131,31 +131,84 @@ paths:
       tags:
       - Pedidos
       parameters:
-      - name: pedidos
+      - name: compras
         in: body
-        description: Listado de los prodcutos que desea adquirir
+        description: Listado de los productos que quiere comprar
         required: true
         schema:
-          type: object
-          properties:
-            platoID:
-              type: integer
-            cantidad:
-              type: string
+          type: array
+          items: 
+            type: object
+            properties:
+              platoID:
+                type: integer
+              cantidad:
+                type: integer
       responses:
         200:
           description: Pedido agregado con exito             
         400:
-          description: Body debe ser un Objeto con clave y valor numericas
+          description: Body no es valido o platoid no valido
     get:
         description: Muestra los pedidos de un usuario
         tags:
         - Pedidos
         responses:
           200:
-            description: Producto agregado correctamente            
+            description: Productos mostrados correctamente            
           404:
             description: El usuario no tiene pedidos
+    put:
+      description: Un usuario edita un pedido existente
+      tags:
+      - Pedidos
+      parameters:
+      - name: pedidoid
+        in: header
+        description: ID del pedido que se desea modificar
+        required: true
+        type: integer
+      - name: compras
+        in: body
+        description: Listado de los productos que desea editar
+        required: true
+        schema:
+          type: array
+          items: 
+            type: object
+            properties:
+              platoID:
+                type: integer
+              cantidad:
+                type: integer
+      responses:
+        200:
+          description: Pedido actualizado             
+        406:
+          description: Error, no se pudo completar la respuesta
+    delete:
+      description: Un usuario elimina productos de un pedido
+      tags:
+      - Pedidos
+      parameters:
+      - name: pedidoid
+        in: header
+        description: ID del pedido que se desea modificar
+        required: true
+        type: integer
+      - name: compras
+        in: body
+        description: Listado de los prodcutos que desea adquirir
+        required: true
+        schema:
+          type: array
+          items:
+            type: integer
+      responses:
+          200:
+            description: Productos eliminados             
+          400:
+            description:  Error, no se pudo completar la respuesta
   /pedidos/admin:
     get:
       description: Un administrador puede ver todos los pedidos
@@ -164,8 +217,8 @@ paths:
       responses:
         200:
           description: Se muestran los pedidos             
-        400:
-          description: Body debe ser un Objeto con clave y valor numericas
+        403:
+          description: No puede realizar esta accion
     put:
       description: Un administrador modifica el estado de un pedido
       tags:
@@ -183,6 +236,19 @@ paths:
         type: string   
       responses:
         200:
-          description: Se muestran los pedidos             
+          description: Estado del pedido cambiado a confirmado           
         400:
-          description: Body debe ser un Objeto con clave y valor numericas
+          description: platoID no encontrado
+        403:
+          description: No puede realizar esta accion
+  /pedidos/confirmado:
+    put:
+      description: Un usuario cambia el estado de su pedido a confirmado
+      tags:
+        - Pedidos Confirmado
+      responses:
+        200:
+          description: Estado cambiado a confirmado             
+        406:
+          description: Un error y no se pudo hacer la modificacion
+ 
