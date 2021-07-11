@@ -19,8 +19,7 @@ function iniciar_sesion(req,res) {
                 logueado.usuario = usuario;
                 logueado.sign_in = true;
                 valido = true;
-                //console.log(logueado.usuario)
-                //console.log(logueado.sign_in)
+                
                 res.status(200).send("Sesion iniciada")
             }
         }
@@ -28,7 +27,6 @@ function iniciar_sesion(req,res) {
         valido = true;
         res.status(406).send("Formato de parametros en headers no valido");
     }
-    // puede iniciar sesion otro usuario sin cerrar la sesion anterior????
     
     if (valido === false) {
         res.status(406).send("Usuario no registrado")
