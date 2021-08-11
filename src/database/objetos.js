@@ -69,12 +69,24 @@ let productos = [
     },
 ];
 
-let medios_pago = {
-    1:'Tarjeta de credito',
-    2:'Tarjeta de debito',
-    3:'Efectivo',
-    4:'Transferencia Bancaria'
-};
+let medios_pago = [
+    {
+        id:1,
+        nombre:'Tarjeta de credito'
+    },
+    {
+        id:2,
+        nombre:'Tarjeta de debito'
+    },
+    {
+        id:3, 
+        nombre:'Efectivo'
+    },
+    {
+        id:4, 
+        nombre:'Transferencia Bancaria'
+    }
+];
 
 module.exports = {
     usuarios,
