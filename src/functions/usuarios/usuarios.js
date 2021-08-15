@@ -1,4 +1,4 @@
-const { usuarios,pedidos, logueado,productos } = require("../database/objetos");
+const { usuarios,pedidos, logueado,productos } = require("../../database/objetos");
 
 
 function crear_cuenta(req,res) {

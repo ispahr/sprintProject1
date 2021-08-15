@@ -6,9 +6,9 @@ const {
         editar_pedido,
         eliminar_producto_de_pedido,
         estado_confirmado
-} = require("../pedidos/pedidos");
+} = require("../functions/pedidos/pedidos");
 
-const { es_admin, esta_registrado, no_admin, posicion_pedido,existe_producto,pedido_confirmado } = require("../middlewares/middlewares");
+const { es_admin, esta_registrado, no_admin, posicion_pedido,existe_producto,pedido_confirmado } = require("../functions/middlewares/middlewares");
 
 const express = require('express');
 const router = express.Router();

@@ -1,4 +1,4 @@
-const { usuarios,pedidos, logueado,productos, medios_pago } = require("../database/objetos");
+const { usuarios,pedidos, logueado,productos, medios_pago } = require("../../database/objetos");
 
 
 //middleware
@@ -124,24 +124,7 @@ function existe_producto(req,res,next) {
         return res.status(406).send({'status_code':406,'message':'Body debe ser: [{"platoID":Number, "cantidad":Number},]'})
     }
 }
-/**
- * Busca si existe el medio de pago. Retorna un header: => pos_medio_pago
- * 
- * Si existe retorna la posicion (Number)
- * Si NO existe devuleve false  
- */
-function existe_medio(req,res,next) {
-  const medio_id = Number(req.headers.medio_id);
-  console.log(medio_id)
-  for (const i in medios_pago) {
-    if (medios_pago[i].id === medio_id) {
-      req.headers.pos_medio_pago = i;
-      return next();
-    } 
-  }
-  req.header.pos_medio_pago = false;
-  return res.status(406).send({'status_code':406,'message':'No se enconstro el medio de pago.'})
-}
+
 
 // error handler
 function errorHandler(err,req,res,next) {
@@ -166,6 +149,5 @@ module.exports = {
     no_admin,
     posicion_pedido,
     existe_producto,
-    pedido_confirmado,
-    existe_medio
+    pedido_confirmado
 }

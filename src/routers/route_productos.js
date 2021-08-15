@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
-const { crear_nuevo_producto, editar_producto, eliminar_producto } = require("../productos/productos");
-const {es_admin, esta_registrado, } = require("../middlewares/middlewares");
+const { crear_nuevo_producto, editar_producto, eliminar_producto } = require("../functions/productos/productos");
+const {es_admin, esta_registrado, } = require("../functions/middlewares/middlewares");
 
 router.use(esta_registrado, es_admin );
 

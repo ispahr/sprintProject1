@@ -4,7 +4,7 @@ function modelUsers(connection) {
     const Users = connection.define('Users',{
         name:{
             type: DataTypes.STRING,
-            allowNull: False
+            allowNull: false
         },
         userName:{
             type: DataTypes.STRING,
