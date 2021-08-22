@@ -1,32 +1,44 @@
-const { usuarios,pedidos, logueado,productos, medios_pago } = require("../../database/objetos");
+const { getModel } = require("../../database");
+const { pedidos, logueado,productos, medios_pago } = require("../../database/objetos");
+const { Op } = require("sequelize");
 
 
 //middleware
-function validar_nueva_cuenta(req,res,next) {
+async function validar_nueva_cuenta(req,res,next) {
     const newUser = req.body;
 
     const userName = !!newUser.userName;
     const name = !!newUser.name;
     const email = !!newUser.email;
     const phoneNumber = !!newUser.phoneNumber;
-    const adrress = !!newUser.adrress;
     const password = !!newUser.password;
 
     req.body.admin = false;
-    
+
     let ban = false;
-    if (userName && name && email && phoneNumber && adrress && password ) {
-        
-        for (const usuario of usuarios) {
-        
-            if (usuario.email === newUser.email){
+    if (userName && name && email && phoneNumber && password ) {
+        // Es mejor buscarlo manualmente o utilizar el error que da la DB directamente
+        try {
+            const Usuarios = getModel('Usuarios');
+            const findEmail = Usuarios.findOne({ where: {email: newUser.email} })
+            const findUsername = Usuarios.findOne({ where: {userName: newUser.userName} })
+
+            const promesas = await Promise.all([findEmail, findUsername])
+            const checkEmail = promesas[0];
+            const checkUsername = promesas[1];
+
+            if (checkEmail !== null) {
                 ban = true;
                 next(new Error('email ya esta registrado'));
-            } else if (usuario.userName === newUser.userName){
+            } else if (checkUsername !== null) {
                 ban = true;
                 next(new Error('nombre de usuario ya esta registrado'));
-            }       
+            }
+
+        } catch (er) {
+            console.log(er)
         }
+
     } else{
         ban = true;
         next(new Error('campos incompletos'));
@@ -62,26 +74,31 @@ function no_admin(req,res,next) {
     }
 }
 
-function posicion_pedido(req,res,next) {
-    const numero_pedido = Number(req.headers.pedidoid);
-    const email = logueado.usuario.email;
+async function existe_pedido(req,res,next) {
+    const pedidoId = Number(req.headers.pedidoid);
 
-    if (!!numero_pedido && Array.isArray(numero_pedido) === false) {
-        for (const i in pedidos) {
-            if (pedidos[i].pedidoID === numero_pedido ){
-                if (pedidos[i].usuario.email === email) {
-                    req.headers.pos_pedido = i;
-                    return next();    
-                } else{
-                    return res.status(406).send({'status_code':406,'message':'pedidoid no corresponde al usuario'})
-                }
-            } 
+    if (!!pedidoId && Array.isArray(pedidoId) === false) {
+      try {
+
+        const Pedidos = getModel('Pedidos');
+        const existe = await Pedidos.findOne({ where: {
+          id: pedidoId,
+          UserId: logueado.usuario.id
+        }});
+
+        if (!!existe) {
+          return next();
         }
+
+      } catch (error) {
+        res.status(400).send({'status_code':400,'message':'Error in the database', 'error':error})
+      }
+
     } else{
         return res.status(406).send({'status_code':406,'message':'Formato de pedidoid no valido (debe ser un numero)'})
 
     }
-        
+
     return res.status(406).send({'status_code':406,'message':'pedidoid no encontrado'})
 }
 
@@ -95,33 +112,49 @@ function pedido_confirmado(req,res,next) {
     }
 }
 
-function existe_producto(req,res,next) {
-    const compras = req.body;
+async function existe_producto(req,res,next) {
+    const { listaProductos } = req.body;
 
-    let posiciones = [];
-    let valido = false;  
-    if (Array.isArray(compras) === true && compras.length > 0) {
+    let valido = false;
+    if (Array.isArray(listaProductos) === true && listaProductos.length > 0) {
         valido = true;
     }
 
-    if (valido === true){    
-        for (const compra of compras) {
-            let encontrado = false;
-            for (const i in productos) {
-                if (compra.platoID === productos[i].platoID) {
-                    encontrado = true;
-                    posiciones.push(i);
-                }
-            }
+    const productosId = listaProductos.map( (producto) => {
+      return producto.productoId
+    })
 
-            if (encontrado === false) {
-                return res.status(406).send({'status_code':406,'message':'platoid debe ser un producto valido.'})
-            }
+    productosId.sort()
+
+    for (let i = 0; i < productosId.length-1; i++) {
+      if (productosId[i] === productosId[i + 1] ) {
+        valido = false;
+      }
+    }
+
+    try {
+
+      if (valido === true){
+
+        const Productos = getModel('Productos');
+
+        const allProducts = await Productos.findAll( { attributes : ['id'] ,
+          where:
+           {id: { [Op.in]: productosId }}
+        });
+
+        if (productosId.length === allProducts.length) {
+          return next()
+        } else {
+          return res.status(406).send({'status_code':406,'message':'productoId debe ser un producto valido.'})
+
         }
-        req.headers.posiciones = posiciones;
-        next();
-    } else {
-        return res.status(406).send({'status_code':406,'message':'Body debe ser: [{"platoID":Number, "cantidad":Number},]'})
+
+      } else {
+        return res.status(406).send({'status_code':406,'message':'Body invalido. No puede incluir dos veces el mismo productoId.'})
+      }
+    } catch (error) {
+      return res.status(406).send({'status_code':400,'message':'Error in the database', 'error':error})
     }
 }
 
@@ -138,16 +171,16 @@ function errorHandler(err,req,res,next) {
         } else if (error === "campos incompletos"){
             res.status(416).send("Debe completar todos los campos");
         }
-    } 
+    }
 }
 
 module.exports = {
     validar_nueva_cuenta,
-    errorHandler, 
+    errorHandler,
     es_admin,
     esta_registrado,
     no_admin,
-    posicion_pedido,
+    existe_pedido,
     existe_producto,
     pedido_confirmado
 }

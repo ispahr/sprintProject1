@@ -15,7 +15,7 @@ function getModel(name) {
   return models[name]
 }
 
-function getConnection() {
+function getSequelize() {
   return connection
 }
 
@@ -28,34 +28,34 @@ async function initDatabase(database, username, host) {
     "dialect": "mariadb"
 
   })
-  
+
   try {
     await sequelize.authenticate();
     console.log('Connection has been established successfully.');
   } catch (error) {
     console.error('Unable to connect to the database:', error);
   }
-  
-  models.Products = modelProducts(sequelize);
+
+  models.Productos = modelProducts(sequelize);
   models.Estado = modelEstado(sequelize);
   models.MedioPago = modelMediosPago(sequelize);
   models.Direcciones = modelDirecciones(sequelize);
   models.Pedidos = modelPedidos(sequelize);
   models.ProductoPedido = modelProductoPedido(sequelize);
-  models.Users = modelUsers(sequelize);
+  models.Usuarios = modelUsers(sequelize);
 
-  sequelize.sync( 
+  sequelize.sync(
     //{ alter: true }
   )
 
-  models.Users.hasMany(models.Pedidos);
-  models.Pedidos.belongsTo(models.Users);
+  models.Usuarios.hasMany(models.Pedidos);
+  models.Pedidos.belongsTo(models.Usuarios);
 
   models.Pedidos.hasMany(models.ProductoPedido);
   models.ProductoPedido.belongsTo(models.Pedidos);
 
-  models.Products.hasMany(models.ProductoPedido);
-  models.ProductoPedido.belongsTo(models.Products);
+  models.Productos.hasMany(models.ProductoPedido);
+  models.ProductoPedido.belongsTo(models.Productos);
 
   models.Estado.hasMany(models.Pedidos);
   models.Pedidos.belongsTo(models.Estado);
@@ -66,9 +66,9 @@ async function initDatabase(database, username, host) {
   models.Direcciones.hasMany(models.Pedidos);
   models.Pedidos.belongsTo(models.Direcciones);
 
-  models.Users.hasMany(models.Direcciones);
-  models.Direcciones.belongsTo(models.Users);
-  
+  models.Usuarios.hasMany(models.Direcciones);
+  models.Direcciones.belongsTo(models.Usuarios);
+
   connection = sequelize;
   return sequelize
 }
@@ -76,8 +76,8 @@ async function initDatabase(database, username, host) {
 //initDatabase()
 
 
-module.exports = { 
+module.exports = {
   initDatabase,
   getModel,
-  getConnection
+  getSequelize
 }

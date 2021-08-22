@@ -1,5 +1,4 @@
 const { getModel } = require('../../database');
-const { medios_pago } = require('../../database/objetos')
 
 async function mostrar_medios_pago(req, res) {
   try {
@@ -71,7 +70,8 @@ async function eliminar_medio_pago(req, res) {
   
   try {
     const one = await mediosPago.destroy({ where: { id: medio_id } });
-    if (one !== null) {
+    console.log(one)
+    if (one === 1) {
       return res.status(200).send({status_code:200, message:"Medio de pago eliminado correctamente."});
       
     } else {
