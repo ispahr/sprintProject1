@@ -1,55 +1,68 @@
 const { getModel } = require("../../database");
 const { logueado } = require("../../database/objetos");
+const { encryptPassword } = require("../middlewares/middlewares");
+const jwt = require("jsonwebtoken");
 
-async function crear_cuenta(req,res) {
-    const newUser = req.body;
-    try {
-        const Usuarios = getModel('Usuarios');
-        await Usuarios.create(newUser)
-        usuarios.push(newUser);
-        res.status(200).send(usuarios)
+async function crear_cuenta(req, res) {
+  const newUser = req.body.newUser;
+  try {
+    const Usuarios = getModel('Usuarios');
+    const createdUser = await Usuarios.create(newUser)
+    return res.status(200).send(createdUser)
 
-    } catch (error) {
+  } catch (error) {
+    console.log(error)
+    return res.status(400).send({ 'status_code': 400, 'message': 'Error in the database', 'error': error })
+  }
+}
 
-        res.status(400).send({'status_code':400,'message':'Error in the database', 'error':error})
-      }
-    }
+async function iniciar_sesion(req, res) {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  let valido = false;
 
-    async function iniciar_sesion(req,res) {
-      const email = req.headers.email;
-      const password = req.headers.password;
-      let valido = false;
+  try {
+    if (email.includes('@') && email.includes('.') && !!password === true) {
+      const Usuarios = getModel('Usuarios');
+      const encryptedPassword = encryptPassword(password);
+      const find = await Usuarios.findOne({ where: { email: email, password: encryptedPassword } })
 
-      try {
-        const Usuarios = getModel('Usuarios');
-        if (email.includes('@') && email.includes('.') && !!password === true) {
-          const find = await Usuarios.findOne( { where: { email: email, password:password} })
-          //console.log(find.dataValues)
+      valido = true;
 
-          if (find !== null) {
-            logueado.usuario = find.dataValues;
-            logueado.sign_in = true;
-            valido = true;
-
-            res.status(200).send("Sesion iniciada")
-          }
-
-        } else{
-          valido = true;
-          res.status(406).send("Formato de parametros en headers no valido");
+      if (find !== null) {
+        const toSend = {
+          id: find.dataValues.id,
+          name: find.dataValues.name,
+          userName: find.dataValues.userName,
+          email: find.dataValues.email,
+          admin: find.dataValues.admin
         }
-
-      } catch (error) {
-        res.status(400).send({'status_code':400,'message':'Error in the database', 'error':error})
-
+        const token = createToken(toSend);
+        logueado.token = token;
+        res.status(200).send(`Sesion iniciada ${token}`);
       }
-    if (valido === false) {
-        res.status(406).send("Usuario no registrado")
+
+    } else {
+      res.status(406).send({ 'status_code': 406, 'message': "Formato de parametros en headers no valido"});
     }
+
+  } catch (error) {
+    console.log(error);
+    return res.status(400).send({ 'status_code': 400, 'message': 'Error in the database', 'error': error })
+
+  }
+  if (valido === false) {
+    return res.status(406).send({ 'status_code': 406, 'message': "Usuario no registrado"})
+  }
 
 }
 
+function createToken(data) {
+  const key = process.env.JWT_KEY;
+  return jwt.sign(data, key);
+}
+
 module.exports = {
-    crear_cuenta,
-    iniciar_sesion
+  crear_cuenta,
+  iniciar_sesion
 }

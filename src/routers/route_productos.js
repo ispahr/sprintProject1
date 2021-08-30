@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-const { crear_nuevo_producto, editar_producto, eliminar_producto } = require("../functions/productos/productos");
-const {es_admin, esta_registrado } = require("../functions/middlewares/middlewares");
+const { crear_nuevo_producto, editar_producto, eliminar_producto, mostrarProductos } = require("../functions/productos/productos");
+const {es_admin, authorize } = require("../functions/middlewares/middlewares");
 
-router.use(esta_registrado, es_admin );
+router.use(authorize );
 
 router.route('/')
-    .post( crear_nuevo_producto )
-    .put( editar_producto )
-    .delete( eliminar_producto );
+    .post( es_admin, crear_nuevo_producto )
+    .put(es_admin, editar_producto )
+    .delete( es_admin, eliminar_producto )
+    .get( mostrarProductos );
 
-module.exports = router;      
+module.exports = router;

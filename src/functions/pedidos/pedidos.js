@@ -1,5 +1,4 @@
 const { getModel, getSequelize } = require("../../database");
-const { pedidos, logueado, productos } = require("../../database/objetos");
 const { QueryTypes } = require('sequelize')
 
 async function realizar_pedido(req, res) {
@@ -11,19 +10,19 @@ async function realizar_pedido(req, res) {
 
   const ProductoPedido = getModel('ProductoPedido');
   const Pedidos = getModel('Pedidos');
-  const userId = logueado.usuario.id;
+  const userId = req.user.id;
 
+  const newPedido = {
+    estadoId: 1,
+    mediosPagoId: mediosPagoId,
+    direccioneId: direccioneId,
+    UserId: userId,
+    costoTotal: 0
+  }
   // falta validacion de datos recibidos
   // no necesito una transaction por si pasa algo justo antes de crear todo?
   try {
-
-    const ped = await Pedidos.create({
-      estadoId: 1,
-      mediosPagoId: mediosPagoId,
-      direccioneId: direccioneId,
-      UserId: userId,
-      costoTotal: 0
-    })
+    const ped = await Pedidos.create(newPedido);
 
     const pedidoId = ped.dataValues.id;
     //List of objects (key/value pairs)
@@ -42,7 +41,6 @@ async function realizar_pedido(req, res) {
       } )
     res.status(200).send({ 'status_code': 200, 'message': 'Pedido agregado con exito' })
   } catch (error) {
-    console.log(error);
     res.status(400).send({ 'status_code': 400, 'message': 'Error in the database', 'error': error });
   }
 
@@ -62,7 +60,7 @@ async function costoPedido(pedidoId) {
 }
 
 async function mostrar_pedidos(req, res) {
-  const userId = logueado.usuario.id;
+  const userId = req.user.id;
 
   const Pedidos = getModel('Pedidos');
 
@@ -91,20 +89,20 @@ async function editar_pedido(req, res) {
     const found = await ProductoPedido.findOne({
       where:{
         pedidoId:pedidoId,
-        ProductoId:producto.productoId
+        ProductoId:producto.ProductoId
       }
     });
     if (!!found) {
       return ProductoPedido.update({cantidad:producto.cantidad}, {
         where:{
           pedidoId:pedidoId,
-          ProductoId:producto.productoId
+          ProductoId:producto.ProductoId
         }
       });
     } else{
         return ProductoPedido.create({
           cantidad:producto.cantidad,
-          ProductoId:producto.productoId,
+          ProductoId:producto.ProductoId,
           pedidoId:pedidoId
       })
     }
@@ -150,33 +148,48 @@ async function eliminar_producto_de_pedido(req, res) {
   return res.status(200).send({ 'status_code': 200, 'message': 'Productos eliminados.' });
 }
 
-function estado_confirmado(req, res) {
-  const pos_pedido = Number(req.headers.pos_pedido);
-  pedidos[pos_pedido].estado = 'confirmado';
-
-  return res.status(200).send({ 'status_code': 200, 'message': 'Estado cambiado a confirmado' });
-}
-
-function admin_modifica_pedidos(req, res) {
+async function estado_confirmado(req, res) {
   const pedidoID = Number(req.headers.pedidoid);
-  const nuevo_estado = req.headers.nuevo_estado;
-  let encontrado = false;
+  const Pedidos = getModel('Pedidos');
+  try {
+    const pedido = await Pedidos.update({estadoId:2} , { where: { id: pedidoID }} );
+    return res.status(200).send({ 'status_code': 200, 'message': 'Estado cambiado a confirmado', 'otro':pedido });
 
-  for (const pedido of pedidos) {
-    if (pedido.pedidoID === pedidoID) {
-      encontrado = true;
-      pedido.estado = nuevo_estado;
-      return res.status(200).send({ 'status_code': 200, 'message': 'Pedido modificado' })
-    }
+  } catch (error) {
+    console.log(error);
+    return res.status(400).send({ 'status_code': 400, 'message': 'Error in the database', 'error': error });
   }
 
-  if (encontrado === false) {
-    return res.status(400).send({ 'status_code': 400, 'message': 'platoID no encontrado' })
+}
+
+async function admin_modifica_pedidos(req, res) {
+  const pedidoID = Number(req.headers.pedidoid);
+  const nuevo_estado = Number(req.headers.nuevo_estado);
+  const Pedidos = getModel('Pedidos');
+
+  try {
+    const pedido = await Pedidos.update({estadoId:nuevo_estado} , { where: { id: pedidoID }} );
+
+    if ( pedido[0] === 0) {
+      return res.status(400).send({ 'status_code': 400, 'message': 'platoID no encontrado' });
+
+    }else {
+      return res.status(200).send({ 'status_code': 200, 'message': 'Pedido modificado'});
+    }
+  } catch (error) {
+      return res.status(400).send({ 'status_code': 400, 'message': 'Error in the database', 'error': error })
   }
 }
 
-function admin_ve_pedidos(req, res) {
-  res.status(200).send(pedidos)
+async function admin_ve_pedidos(req, res) {
+  const Pedidos = getModel('Pedidos');
+  try {
+    const allPedidos = await Pedidos.findAll();
+    res.status(400).send(allPedidos)
+  } catch (error) {
+    res.status(400).send({ 'status_code': 400, 'message': 'Error in the database', 'error': error })
+
+  }
 }
 
 module.exports = {
