@@ -1,5 +1,4 @@
-const { getModel } = require("../../database");
-const { logueado } = require("../../database/objetos");
+const Database = require("../../database");
 const { Op } = require("sequelize");
 const { createHmac } = require('crypto');
 const jwt = require("jsonwebtoken");
@@ -25,10 +24,9 @@ async function validar_nueva_cuenta(req, res, next) {
       phoneNumber,
       admin: false
     };
-
     // Es mejor buscarlo manualmente o utilizar el error que da la DB directamente
     try {
-      const Usuarios = getModel('Usuarios');
+      const Usuarios = Database.getModel('Usuarios');
       const findEmail = Usuarios.findOne({ where: { email: newUser.email } })
       const findUsername = Usuarios.findOne({ where: { userName: newUser.userName } })
 
@@ -72,12 +70,12 @@ function es_admin(req, res, next) {
 
 function authorize(req,res,next) {
   const { JWT_KEY } = process.env;
-  const token = req.headers.authorization || logueado.token;
-
+  const bearer = req.headers.authorization || '';
+  const token = bearer.replace('Bearer ','');
   jwt.verify(token, JWT_KEY, function(err, decoded) {
 
     if (err) {
-      res.status(401).send({ 'status_code': 403, 'message': 'Usted no esta autorizado.' });
+      res.status(401).send({ 'status_code': 401, 'message': 'Usted no esta autorizado.' });
     } else {
       req.user = decoded;
       next();
@@ -86,13 +84,13 @@ function authorize(req,res,next) {
 
 }
 
-// function esta_registrado(req, res, next) {
-//   if (logueado.sign_in === false) {
-//     res.status(403).send({ 'status_code': 403, 'message': 'Debe iniciar sesion para realizar esta accion' });
-//   } else {
-//     next();
-//   }
-// }
+function suspended(req, res, next) {
+  if (req.user.suspended === false) {
+    next();
+  } else {
+    res.status(403).send({ 'status_code': 403, 'message': 'EL usuario esta suspendido y no puede acceder.' });
+  }
+}
 
 function no_admin(req, res, next) {
   if (req.user.admin === false) {
@@ -108,7 +106,7 @@ async function existe_pedido(req, res, next) {
   if (!!pedidoId && Array.isArray(pedidoId) === false) {
     try {
       const id = req.user.id;
-      const Pedidos = getModel('Pedidos');
+      const Pedidos = Database.getModel('Pedidos');
       const existe = await Pedidos.findOne({
         where: {
           id: pedidoId,
@@ -136,7 +134,7 @@ async function existe_pedido(req, res, next) {
 async function pedido_confirmado(req, res, next) {
   const pedidoId = Number(req.headers.pedidoid);
 
-  const Pedidos = getModel('Pedidos');
+  const Pedidos = Database.getModel('Pedidos');
   try {
     const pedido = await Pedidos.findOne({ where: { id: pedidoId }});
     if (pedido.dataValues.estadoId === 1) {
@@ -175,7 +173,7 @@ async function existe_producto(req, res, next) {
 
     if (valido === true) {
 
-      const Productos = getModel('Productos');
+      const Productos = Database.getModel('Productos');
 
       const allProducts = await Productos.findAll({
         attributes: ['id'],
@@ -205,11 +203,11 @@ function errorHandler(err, req, res, next) {
   if (error !== undefined) {
 
     if (error === "email ya esta registrado") {
-      res.status(406).send("El email ya esta registrado");
+      res.status(406).send({ 'status_code': 406, 'message': "El email ya esta registrado"});
     } else if (error === "nombre de usuario ya esta registrado") {
-      res.status(406).send("El nombre de usuario ya se ecuentra registrado");
+      res.status(406).send({ 'status_code': 406, 'message': "El nombre de usuario ya se ecuentra registrado"});
     } else if (error === "campos incompletos") {
-      res.status(416).send("Debe completar todos los campos");
+      res.status(416).send({ 'status_code': 416, 'message': "Debe completar todos los campos"});
     }
   }
 }
@@ -223,5 +221,6 @@ module.exports = {
   existe_producto,
   pedido_confirmado,
   encryptPassword,
-  authorize
+  authorize,
+  suspended
 }

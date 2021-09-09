@@ -27,6 +27,10 @@ function modelUsers(connection) {
         admin:{
             type: DataTypes.BOOLEAN,
             defaultValue: false
+        },
+        suspended: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
         }
     })
 

@@ -6,10 +6,17 @@ const modelDirecciones = require('./models/direcciones');
 const modelPedidos = require('./models/pedidos');
 const modelUsers = require('./models/users');
 const modelProductoPedido = require('./models/productoPedido');
+const redis = require('redis')
 
 let models = {};
 
 let connection = '';
+
+let = clientRedis = ''
+
+function getRedis() {
+  return clientRedis;
+}
 
 function getModel(name) {
   return models[name]
@@ -26,7 +33,6 @@ async function initDatabase(database, username, host) {
     "username": username,
     "host": host,
     "dialect": "mariadb"
-
   })
 
   try {
@@ -35,6 +41,13 @@ async function initDatabase(database, username, host) {
   } catch (error) {
     console.error('Unable to connect to the database:', error);
   }
+  //redis
+  const client = redis.createClient();
+  client.on("error", function(error) {
+    console.error(error);
+    throw new Error(error);
+  });
+  clientRedis = client;
 
   models.Productos = modelProducts(sequelize);
   models.Estado = modelEstado(sequelize);
@@ -79,5 +92,6 @@ async function initDatabase(database, username, host) {
 module.exports = {
   initDatabase,
   getModel,
-  getSequelize
+  getSequelize,
+  getRedis
 }

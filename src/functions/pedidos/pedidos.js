@@ -20,43 +20,61 @@ async function realizar_pedido(req, res) {
     costoTotal: 0
   }
   // falta validacion de datos recibidos
-  // no necesito una transaction por si pasa algo justo antes de crear todo?
+  const sequelize = getSequelize()
+
+  const t = await sequelize.transaction();
   try {
-    const ped = await Pedidos.create(newPedido);
+
+    const ped = await Pedidos.create(newPedido, { transaction: t });
 
     const pedidoId = ped.dataValues.id;
     //List of objects (key/value pairs)
+    console.log(pedidoId);
     var allData = listaProductos.map(function (prod) {
       prod.pedidoId = pedidoId;
       return prod;
 
     });
-    const todosAgregados = await ProductoPedido.bulkCreate(allData);
-    const costo_total = await costoPedido(pedidoId);
-
+    const todosAgregados = await ProductoPedido.bulkCreate(allData, { transaction: t });
+    const costo_total = await costoPedido(pedidoId, t);
+    console.log(costo_total);
     const agregarCosto = await Pedidos.update( {
       costoTotal: costo_total[0]['suma'] },
       { where:
-         { id : pedidoId}
-      } )
+         { id : pedidoId} ,
+         transaction: t
+      }
+    )
+
+    await t.commit();
     res.status(200).send({ 'status_code': 200, 'message': 'Pedido agregado con exito' })
   } catch (error) {
+
+    await t.rollback();
+    console.log(error);
     res.status(400).send({ 'status_code': 400, 'message': 'Error in the database', 'error': error });
   }
 
 
 }
-async function costoPedido(pedidoId) {
+async function costoPedido(pedidoId, transaction = null) {
   const sequelize = getSequelize();
-  const suma = await sequelize.query(
-    `SELECT SUM(prod.price * pp.cantidad) as suma FROM productopedidos as pp
-    JOIN productos as prod ON pp.ProductoId  = prod.id WHERE pp.pedidoId = :pedidoId`,
-    {
-      replacements: { pedidoId: pedidoId },
-      type: QueryTypes.SELECT    }
-  );
+  try {
+    const suma = await sequelize.query(
+      `SELECT SUM(prod.price * pp.cantidad) as suma FROM productopedidos as pp
+      JOIN productos as prod ON pp.ProductoId  = prod.id WHERE pp.pedidoId = :pedidoId`,
+      {
+        replacements: { pedidoId: pedidoId },
+        type: QueryTypes.SELECT,
+        transaction:transaction
+      }
+    );
+    return suma;
 
-  return suma;
+  } catch (error) {
+    console.log(error);
+  }
+
 }
 
 async function mostrar_pedidos(req, res) {
@@ -85,67 +103,93 @@ async function editar_pedido(req, res) {
   const Pedidos = getModel('Pedidos');
   const ProductoPedido = getModel('ProductoPedido');
 
-  const updateData = listaProductos.map(async (producto) => {
-    const found = await ProductoPedido.findOne({
-      where:{
-        pedidoId:pedidoId,
-        ProductoId:producto.ProductoId
-      }
-    });
-    if (!!found) {
-      return ProductoPedido.update({cantidad:producto.cantidad}, {
+  const sequelize = getSequelize();
+  const t = await sequelize.transaction();
+  try {
+    const updateData = listaProductos.map(async (producto) => {
+      const found = await ProductoPedido.findOne({
         where:{
           pedidoId:pedidoId,
           ProductoId:producto.ProductoId
-        }
+        },
+        transaction: t
       });
-    } else{
-        return ProductoPedido.create({
-          cantidad:producto.cantidad,
-          ProductoId:producto.ProductoId,
-          pedidoId:pedidoId
-      })
+      if (!!found) {
+        return ProductoPedido.update({cantidad:producto.cantidad}, {
+          where:{
+            pedidoId:pedidoId,
+            ProductoId:producto.ProductoId
+          },
+          transaction: t
+        });
+      } else{
+          return ProductoPedido.create({
+            cantidad:producto.cantidad,
+            ProductoId:producto.ProductoId,
+            pedidoId:pedidoId
+        }, {
+          transaction: t
+        })
+      }
+    })
+
+    const updated = await Promise.all(updateData);
+    //Actualiza el costo total
+    const costo_total = await costoPedido(pedidoId, t);
+
+    const agregarCosto = await Pedidos.update( {
+      costoTotal: costo_total[0]['suma'] },
+      { where:
+          { id : pedidoId},
+        transaction: t
+      }
+    )
+
+    await t.commit();
+    return res.status(200).send({ 'status_code': 200, 'message': 'Pedido actualizado.' })
+
+  } catch (error) {
+      await t.rollback();
+      return res.status(400).send({ 'status_code': 400, 'Error_message': error.message })
+
     }
-  })
-
-  const updated = await Promise.all(updateData);
-  //Actualiza el costo total
-  const costo_total = await costoPedido(pedidoId);
-
-  const agregarCosto = await Pedidos.update( {
-    costoTotal: costo_total[0]['suma'] },
-    { where:
-        { id : pedidoId}
-    } )
-  return res.status(200).send({ 'status_code': 200, 'message': 'Pedido actualizado.' })
 }
 
 async function eliminar_producto_de_pedido(req, res) {
   const { listaProductos } = req.body;
   const pedidoId = Number(req.headers.pedidoid);
-
   const ProductoPedido = getModel('ProductoPedido')
   const Pedidos = getModel('Pedidos')
 
-  const deleteId = listaProductos.map( (producto) => {
-    return ProductoPedido.destroy({ where: {
-      pedidoId: pedidoId,
-      ProductoId: producto.productoId
-    }})
+  const sequelize = getSequelize();
+  const t = await sequelize.transaction();
+  try {
+    const deleteId = listaProductos.map( (producto) => {
+      return ProductoPedido.destroy({
+        where: {
+          pedidoId: pedidoId,
+          ProductoId: producto.productoId
+        },
+        transaction: t
+      })
+    })
+    const allDestroy = await Promise.all(deleteId)
+    //Actualiza el costo total
+    const costo_total = await costoPedido(pedidoId, t);
 
-  })
-  const allDestroy = await Promise.all(deleteId)
-  console.log(allDestroy);
-  //Actualiza el costo total
-  const costo_total = await costoPedido(pedidoId);
-
-  const agregarCosto = await Pedidos.update( {
-    costoTotal: costo_total[0]['suma'] },
-    { where:
-        { id : pedidoId}
-    } )
-
-  return res.status(200).send({ 'status_code': 200, 'message': 'Productos eliminados.' });
+    const agregarCosto = await Pedidos.update( {
+      costoTotal: costo_total[0]['suma'] },{
+      where:
+          { id : pedidoId},
+          transaction: t
+      }
+    )
+    await t.commit();
+    return res.status(200).send({ 'status_code': 200, 'message': 'Productos eliminados.' });
+  } catch (error) {
+    await t.rollback  ();
+    return res.status(400).send({ 'status_code': 400, 'Error_message': error.message })
+  }
 }
 
 async function estado_confirmado(req, res) {

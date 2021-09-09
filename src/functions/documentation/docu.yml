@@ -15,51 +15,117 @@ paths:
       description: Inicia sesión
       tags:
       - Usuario
-      parameters:
-      - name: email
-        in: header
-        description: email de usuario registrado
-        required: true
-        type: string
-      - name: password
-        in: header
-        description: password de usuario registrado
-        required: true
-        type: string
+      requestBody:
+        description: Email y contraseña para iniciar sesion
+        content:
+          application/json:
+            required: true
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
       responses:
         200:
-          description: Sesion iniciada con exito              
+          description: Sesion iniciada con exito
         406:
           description: Usuario no registrado
     post:
       description: Crear cuenta
       tags:
       - Usuario
-      parameters:
-      - name: usuario
-        in: body
-        description: datos para crear la cuenta
-        required: true
-        schema:
-          type: object
-          properties:
-            userName:
-              type: string
-            name:
-              type: string
-            email:
-              type: string
-            phoneNumber:
-              type: string
-            adrress:
-              type: string
-            password:
-              type: string
+      requestBody:
+        content:
+          application/json:
+            description: Datos para crear la nueva cuenta
+            required: true
+            schema:
+              type: object
+              properties:
+                userName:
+                  type: string
+                name:
+                  type: string
+                email:
+                  type: string
+                phoneNumber:
+                  type: string
+                password:
+                  type: string
       responses:
         200:
-          description: Todo bien
+          description: Usuario creado con exito
+        406:
+          description: El nombre de usuario y/o email ya se ecuentra registrado
+        416:
+          description: Debe completar todos los campos
+  /usuarios/direcciones:
+    post:
+      security:
+        - bearerAuth: []
+      description: Agregar direccion
+      tags:
+      - Usuario/direcciones
+      requestBody:
+        description: Direccion que se quiere agregar
+        content:
+          application/json:
+            required: true
+            schema:
+              type: object
+              properties:
+                direccion:
+                  type: string
+      responses:
+        200:
+          description: Direccion agregada
+        401:
+          description: Usted no esta autorizado
+        403:
+          description: Usted es un usuario administrador. No puede realizar esta accion
+    get:
+      security:
+        - bearerAuth: []
+      description: Muestra las direcciones del usuario
+      tags:
+      - Usuario/direcciones
+      responses:
+        200:
+          description: Lista de direcciones
+        401:
+          description: Usted no esta autorizado.
+        403:
+          descripction: El usuario esta suspendido y no puede acceder.
+  /usuarios/admin:
+    put:
+      security:
+        - bearerAuth: []
+      description: Administrador suspende a un usuario
+      tags:
+      - Usuario/admin
+      requestBody:
+        description: Id del usuario que se quiere suspender
+        content:
+          application/json:
+            required: true
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+      responses:
+        200:
+          description: Direccion agregada
+        401:
+          description: Usted no esta autorizado
+        403:
+          description: No puede realizar esta accion
   /productos:
     post:
+      security:
+        - bearerAuth: []
       description: Crea un nuevo producto
       tags:
       - Productos
@@ -76,89 +142,136 @@ paths:
         type: integer
       responses:
         200:
-          description: Producto agregado correctamente             
+          description: Producto agregado correctamente
+        401:
+          description: Usted no esta autorizado
+        403:
+          description: No puede realizar esta accion
         406:
-          description: Producto ya registrado o formato de parametros no válido  
+          description: Producto ya registrado o formato de parametros no válido
     put:
+      security:
+        - bearerAuth: []
       description: Edita un producto existente por su ID
       tags:
       - Productos
-      parameters:
-      - name: producto
-        in: body
-        description: datos para crear el nuevo producto
-        required: true
-        schema:
-          type: object
-          properties:
-            platoID:
-              type: integer
-            plato:
-              type: string
-            precio:
-              type: integer
+      requestBody:
+        description: A JSON object containing pet information
+        content:
+          application/json:
+            description: datos para crear el nuevo producto
+            required: true
+            schema:
+              type: object
+              properties:
+                platoID:
+                  type: integer
+                plato:
+                  type: string
+                precio:
+                  type: integer
       responses:
         200:
-          description: Producto editado correctamente             
+          description: Producto editado correctamente
         400:
           description: "Obligatorio: {platoID: Number} Opcional(al menos uno): {precio:Number} o {plato:string}"
+        401:
+          description: Usted no esta autorizado
+        403:
+          description: No puede realizar esta accion
         404:
           descripction: platoID no encontrado
     delete:
+      security:
+        - bearerAuth: []
       description: Elimina un producto existente por su ID
       tags:
       - Productos
-      parameters:
-      - name: platoID
-        in: body
+      requestBody:
         description: ID del producto que se desea borrar
-        required: true
-        schema:
-          type: object
-          properties:
-            platoID:
-              type: integer
+        content:
+          application/json:
+            required: true
+            schema:
+              type: object
+              properties:
+                platoID:
+                  type: integer
       responses:
         200:
-          description: Producto eliminado correctamente             
+          description: Producto eliminado correctamente
         400:
           description: platoID debe ser un numero
+        401:
+          description: Usted no esta autorizado
+        403:
+          description: No puede realizar esta accion
         404:
           descripction: platoID no encontrado
+    get:
+      security:
+        - bearerAuth: []
+      description: Ver todos los productos
+      tags:
+      - Productos
+      responses:
+        200:
+          description: Producto eliminado correctamente
+        401:
+          description: Usted no esta autorizado.
+        403:
+          descripction: El usuario esta suspendido y no puede acceder.
   /pedidos:
     post:
+      security:
+        - bearerAuth: []
       description: Un usuario realiza un nuevo pedido
       tags:
       - Pedidos
-      parameters:
-      - name: compras
-        in: body
+      requestBody:
         description: Listado de los productos que quiere comprar
-        required: true
-        schema:
-          type: array
-          items: 
-            type: object
-            properties:
-              platoID:
-                type: integer
-              cantidad:
-                type: integer
+        content:
+          application/json:
+            required: true
+            schema:
+              type: object
+              properties:
+                mediosPagoId:
+                  type: integer
+                direccioneId:
+                  type: integer
+                listaProductos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ProductoId:
+                        type: integer
+                      cantidad:
+                        type: integer
       responses:
         200:
-          description: Pedido agregado con exito             
+          description: Pedido agregado con exito
         400:
           description: Body no es valido o platoid no valido
+        403:
+          description: El usuario esta suspendido y no puede acceder
     get:
+        security:
+          - bearerAuth: []
         description: Muestra los pedidos de un usuario
         tags:
         - Pedidos
         responses:
           200:
-            description: Productos mostrados correctamente            
+            description: Productos mostrados correctamente
           404:
             description: El usuario no tiene pedidos
+          403:
+            description: El usuario esta suspendido y no puede acceder
     put:
+      security:
+        - bearerAuth: []
       description: Un usuario edita un pedido existente
       tags:
       - Pedidos
@@ -168,58 +281,81 @@ paths:
         description: ID del pedido que se desea modificar
         required: true
         type: integer
-      - name: compras
-        in: body
+      requestBody:
         description: Listado de los productos que desea editar
-        required: true
-        schema:
-          type: array
-          items: 
-            type: object
-            properties:
-              platoID:
-                type: integer
-              cantidad:
-                type: integer
+        content:
+          application/json:
+            required: true
+            schema:
+              type: object
+              properties:
+                listaProductos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ProductoId:
+                        type: integer
+                      cantidad:
+                        type: integer
       responses:
         200:
-          description: Pedido actualizado             
+          description: Pedido actualizado
+        403:
+          description: El usuario esta suspendido y no puede acceder
         406:
           description: Error, no se pudo completar la respuesta
     delete:
+      security:
+        - bearerAuth: []
       description: Un usuario elimina productos de un pedido
       tags:
       - Pedidos
       parameters:
       - name: pedidoid
         in: header
-        description: ID del pedido que se desea modificar
+        description: ID del pedido que se desea elimiar
         required: true
         type: integer
-      - name: compras
-        in: body
-        description: Listado de los prodcutos que desea adquirir
-        required: true
-        schema:
-          type: array
-          items:
-            type: integer
+      requestBody:
+        description: Listado de los prodcutos que desea eliminar
+        content:
+          application/json:
+            required: true
+            schema:
+              type: object
+              properties:
+                listaProductos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productoId:
+                        type: integer
       responses:
           200:
-            description: Productos eliminados             
+            description: Productos eliminados
           400:
             description:  Error, no se pudo completar la respuesta
+          403:
+            description: El usuario esta suspendido y no puede acceder
   /pedidos/admin:
     get:
+      security:
+        - bearerAuth: []
       description: Un administrador puede ver todos los pedidos
       tags:
       - Pedidos Admin
       responses:
         200:
-          description: Se muestran los pedidos             
+          description: Se muestran los pedidos
+        401:
+          description: Usted no esta autorizado
         403:
           description: No puede realizar esta accion
     put:
+      security:
+        - bearerAuth: []
       description: Un administrador modifica el estado de un pedido
       tags:
       - Pedidos Admin
@@ -233,22 +369,111 @@ paths:
         in: header
         description: El nuevo estado que sera asignado al pedido
         required: true
-        type: string   
+        type: string
       responses:
         200:
-          description: Estado del pedido cambiado a confirmado           
+          description: Estado del pedido cambiado a confirmado
         400:
           description: platoID no encontrado
+        401:
+          description: Usted no esta autorizado
         403:
           description: No puede realizar esta accion
   /pedidos/confirmado:
     put:
+      security:
+        - bearerAuth: []
       description: Un usuario cambia el estado de su pedido a confirmado
       tags:
         - Pedidos Confirmado
       responses:
         200:
-          description: Estado cambiado a confirmado             
+          description: Estado cambiado a confirmado
         406:
           description: Un error y no se pudo hacer la modificacion
- 
+  /medios-de-pago:
+    post:
+      security:
+        - bearerAuth: []
+      description: Agrega medio de pago
+      tags:
+      - Medios de Pago
+      parameters:
+      - name: nuevo
+        in: header
+        description: Nombre del nuevo medio de pago
+        required: true
+        type: string
+      responses:
+        200:
+          description: Pedido agregado con exito
+        401:
+          description: Usted no esta autorizado
+        403:
+          description: No puede realizar esta accion
+    get:
+      security:
+        - bearerAuth: []
+      description: Muestra todos los medios de pago
+      tags:
+      - Medios de Pago
+      responses:
+        200:
+          description: Medios de pago correctamente
+        401:
+          description: Usted no esta autorizado
+        403:
+          description: No puede realizar esta accion
+    put:
+      security:
+        - bearerAuth: []
+      description: Actualiza un medio de pago
+      tags:
+      - Medios de Pago
+      parameters:
+      - name: nuevo_nombre
+        in: header
+        description: Nuevo nombre del nuevo medio de pago
+        required: true
+        type: string
+      - name: medio_id
+        in: header
+        description: ID del medio de pago a modificar
+        required: true
+        type: integer
+      responses:
+        200:
+          description: Medio de pago editado correctamente
+        406:
+          description: El medio de pago ID no existe
+        401:
+          description: Usted no esta autorizado
+        403:
+          description: No puede realizar esta accion
+    delete:
+      security:
+        - bearerAuth: []
+      description: Elimina un medio de pago
+      tags:
+      - Medios de Pago
+      parameters:
+      - name: medio_id
+        in: header
+        description: ID del medio de pago a eliminar
+        required: true
+        type: integer
+      responses:
+        200:
+          description: Medio de pago eliminado correctamente
+        406:
+          description: El medio de pago ID no existe
+        401:
+          description: Usted no esta autorizado
+        403:
+          description: No puede realizar esta accion
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
