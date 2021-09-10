@@ -1,6 +1,5 @@
 node_modules/
 estructura.md
 *.pdf
-URL.txt
-.env
 .editorconfig
+.env

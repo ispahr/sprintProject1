@@ -6,7 +6,7 @@ const modelDirecciones = require('./models/direcciones');
 const modelPedidos = require('./models/pedidos');
 const modelUsers = require('./models/users');
 const modelProductoPedido = require('./models/productoPedido');
-const redis = require('redis')
+const redis = require('redis');
 
 let models = {};
 
@@ -26,13 +26,15 @@ function getSequelize() {
   return connection
 }
 
-async function initDatabase(database, username, host) {
+async function initDatabase(database, username, host = 'localhost', password, db_port =3306 ) {
 
   const sequelize = new Sequelize({
     "database": database,
     "username": username,
+    "port": db_port,
     "host": host,
-    "dialect": "mariadb"
+    "dialect": "mariadb",
+    "password": password
   })
 
   try {
@@ -49,13 +51,13 @@ async function initDatabase(database, username, host) {
   });
   clientRedis = client;
 
-  models.Productos = modelProducts(sequelize);
+  models.Usuarios = modelUsers(sequelize);
   models.Estado = modelEstado(sequelize);
   models.MedioPago = modelMediosPago(sequelize);
   models.Direcciones = modelDirecciones(sequelize);
+  models.Productos = modelProducts(sequelize);
   models.Pedidos = modelPedidos(sequelize);
   models.ProductoPedido = modelProductoPedido(sequelize);
-  models.Usuarios = modelUsers(sequelize);
 
   sequelize.sync(
     //{ alter: true }
@@ -83,10 +85,12 @@ async function initDatabase(database, username, host) {
   models.Direcciones.belongsTo(models.Usuarios);
 
   connection = sequelize;
-  return sequelize
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve(sequelize);
+    }, 500)
+  })
 }
-
-//initDatabase()
 
 
 module.exports = {

@@ -20,9 +20,7 @@
     "sequelize": "^6.6.5",
     "sinon": "^11.1.2",
     "swagger-ui-express": "^4.1.6",
-    "yamljs": "^0.3.0"
-  },
-  "devDependencies": {
+    "yamljs": "^0.3.0",
     "chai": "^4.3.4",
     "chai-http": "^4.3.0"
   }
