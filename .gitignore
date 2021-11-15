@@ -3,3 +3,4 @@ estructura.md
 *.pdf
 .editorconfig
 .env
+*.config.js

@@ -1,4 +1,4 @@
-const { Sequelize, DataTypes } = require('Sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const modelProducts = require('./models/productos');
 const modelEstado = require('./models/estado');
 const modelMediosPago = require('./models/mediosPago');
@@ -12,7 +12,7 @@ let models = {};
 
 let connection = '';
 
-let = clientRedis = ''
+let clientRedis = '';
 
 function getRedis() {
   return clientRedis;
@@ -44,7 +44,10 @@ async function initDatabase(database, username, host = 'localhost', password, db
     console.error('Unable to connect to the database:', error);
   }
   //redis
-  const client = redis.createClient();
+  const client = redis.createClient({
+	host: 'cluster-api-restaurante.yjlmbg.0001.sae1.cache.amazonaws.com',
+	port: 6379
+  });
   client.on("error", function(error) {
     console.error(error);
     throw new Error(error);

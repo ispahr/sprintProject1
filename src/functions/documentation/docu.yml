@@ -7,7 +7,7 @@ contact:
 license:
   name: MIT
 servers:
-  - url: http://localhost:9090/api/v1
+  - url: https://www.restaurante-ignacio.ml/api/v1
     description: develompment server
 paths:
   /usuarios:
