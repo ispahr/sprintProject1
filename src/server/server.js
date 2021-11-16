@@ -12,12 +12,12 @@ app.use(express.json());
 app.set('json spaces', 3);
 app.use(helmet());
 
-app.use("/api/v1/pedidos", pedidos);
-app.use('/api/v1/productos', productos);
-app.use('/api/v1/usuarios', usuarios);
-app.use('/api/v1/medios-de-pago', medios_de_pago);
+app.use("/v1/pedidos", pedidos);
+app.use('/v1/productos', productos);
+app.use('/v1/usuarios', usuarios);
+app.use('/v1/medios-de-pago', medios_de_pago);
 
-app.use('/api/v1/api-docs', documentation);
+app.use('/v1/api-docs', documentation);
 
 
 function makeServer() {
