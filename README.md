@@ -2,63 +2,28 @@
 
 Alumno: Ignacio Javier Spahr Baya
 
-El trabajo consiste en crear un API con NodeJS para el restaurante Delilah Restó, para que éste pueda gestionar los pedidos.
+La API del restaurante Delilha Restó implementada en los servidores de Amazon Web Services
 
-## **Dependencias:**
-- express
-- swagger-ui-express
-- yamljs
-- sequelize
-- dotenv
-- jsonwebtoken
-- mariadb
-- redis
-- helmet
-- cahi
-- cahi-http
-- sinon
-- mocha
-
-## Para inicar la base de datos
----
-La base de datos funciona con un manejador compatible con MariaDB o MySQL.
-
-Para inicar la base de datos se necesita completar las variables de entorno. Para eso puede crear un archivo .env ya que la aplicación implemeta el paquete `dotenv`. Aquí el detalle de las variables:
+## URL
 
 ```
-DB_USERNAME = Nombre de usuario
-DB_PASSWORD = Contraseña de usuario
-DB_NAME = Nombre de la base de datos
-PORT = Puerto donde corre el servidor de la aplicacion. Por defecto es el 9090
-DB_HOST = El host de la base de datos. Recomendacion: localhost
-DB_PORT = El puerto donde corre la base de datos. Recomendacion: 3306, ya que es el puerto por defecto de MySQL
-JWT_KEY = Clave para usar jsonwebtoken
+https://restaurtante-ignacio.ml
+```
+## Dirección
+El sitio se encuentra corriendo. Si se entra a la dirección https://restaurtante-ignacio.ml se
+ecuentra con la página de inicio de muestra.
+
+Ingresando a https://restaurtante-ignacio.ml/api/v1/productos se puede ver que la api da una respuesta que no se puede acceder porque no esta logueado, es decir que la api funciona.
+
+Si desea puede hacer una petición PUT a https://restaurtante-ignacio.ml/api/v1/usuarios con los siguientes datos en el body para iniciar sesión y comprobar el funcionamiento.
+
+```
+{
+  "email":"juan@gmail.com",
+  "password":"juan"
+}
 ```
 
-La primera vez que se ejecute la base de datos se van a cargar unos datos de prueba, así esta lista para interactuar con ella.
 
-Los datos de los usuarios son:
-```
-  Usuario Administrador:
-    - email: pepito@gmail.com
-    - contraseña: pepito
-
-  Usuario comprador:
-    - email: juan@gmail.com
-    - contraseña: juan
-```
-
-## Probando las rutas
-Cuando pruebe las rutas, debe ingresar en Authorization un Bearer Token para tener acceso todas las rutas, excepto en la de Crear Usuario y en la de Iniciar Sesión.
-
-## Para iniciar el servidor
----
-Primero debe posicionarse en la carpeta 'SprintProject1'
-
-`Si tiene instalado nodemon puede usar `
-
-> npm run dev
-
-`Tambien puede usar solo node`
-
-> node app.js
+## Conexión Instancia por SSH
+Están disponibles el archivo intancia-balanceador-1.pem para realizar la conexión y las credenciales de Amazon Web Services para que sea posible la conexion a la instancia. La instancia a la que debe conectarse es "restautante-api".
